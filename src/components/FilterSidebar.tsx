@@ -10,7 +10,7 @@ interface FilterSidebarProps {
     printed: boolean;
   };
   filterCounts: FilterCounts | null;
-  onFilterChange: (key: string, value: any) => void;
+  onFilterChange: (key: string, value: string[] | boolean) => void;
 }
 
 export function FilterSidebar({ filters, filterCounts, onFilterChange }: FilterSidebarProps) {

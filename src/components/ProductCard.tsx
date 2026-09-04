@@ -12,7 +12,7 @@ function highlightText(text: string, searchTerm: string): string {
   const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
   const parts = text.split(regex);
   
-  return parts.map((part, index) => 
+  return parts.map((part) => 
     regex.test(part) 
       ? `<mark class="bg-[#FFC107] text-[#1A3F24] font-medium px-0.5 rounded">${part}</mark>`
       : part

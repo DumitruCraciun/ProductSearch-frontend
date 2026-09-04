@@ -75,7 +75,7 @@ export default function HomePage() {
     updateUrl();
   }, [updateUrl]);
 
-  const handleFilterChange = (key: string, value: any) => {
+ const handleFilterChange = (key: string, value: string[] | boolean) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1);
     setTimeout(() => {
