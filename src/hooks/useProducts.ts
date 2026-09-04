@@ -1,6 +1,4 @@
 // hooks/useProducts.ts
-// Custom hook for fetching products with filters and pagination
-
 import { useState, useEffect, useCallback } from 'react';
 import { Product, ProductsResponse, ProductFilters } from '../types/product';
 
@@ -31,7 +29,6 @@ export function useProducts(): UseProductsResult {
     setError(null);
 
     try {
-      // Build query string
       const queryParams = new URLSearchParams();
       
       if (params.page) queryParams.append('page', String(params.page));
@@ -51,7 +48,19 @@ export function useProducts(): UseProductsResult {
       if (params.sort) queryParams.append('sort', params.sort);
 
       const url = `${API_URL}/products?${queryParams.toString()}`;
-      const response = await fetch(url);
+      
+      // ✅ Adaugă timeout pentru fetch
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secunde timeout
+      
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -60,33 +69,36 @@ export function useProducts(): UseProductsResult {
       const data: ProductsResponse = await response.json();
       
       if (!data || !data.meta) {
-          console.error('Invalid response structure:', data);
-          setProducts([]);
-          setTotal(0);
-          setTotalPages(0);
-          setCurrentPage(1);
-          setFilterCounts(null);
-          setLoading(false);
-          return;
-        }
-        
-        setProducts(data.data || []);
-        setTotal(data.meta.total || 0);
-        setTotalPages(data.meta.totalPages || 0);
-        setCurrentPage(data.meta.page || 1);
-        setFilterCounts(data.filters || null);
-        
-        console.log('✅ Products loaded:', data.data?.length || 0);
-        
+        console.error('Invalid response structure:', data);
+        setProducts([]);
+        setTotal(0);
+        setTotalPages(0);
+        setCurrentPage(1);
+        setFilterCounts(null);
+        setLoading(false);
+        return;
+      }
+      
+      setProducts(data.data || []);
+      setTotal(data.meta.total || 0);
+      setTotalPages(data.meta.totalPages || 0);
+      setCurrentPage(data.meta.page || 1);
+      setFilterCounts(data.filters || null);
+      
+      console.log('✅ Products loaded:', data.data?.length || 0);
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timeout - please try again');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      }
       console.error('Error fetching products:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Initial fetch on mount
   useEffect(() => {
     fetchProducts({ page: 1 });
   }, [fetchProducts]);

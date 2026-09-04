@@ -3,6 +3,10 @@
 
 import dynamic from 'next/dynamic';
 
+// ✅ FORȚEAZĂ GENERAREA DINAMICĂ
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Dezactivează caching-ul static
+
 // Încarcă componenta principală doar pe client
 const HomePageContent = dynamic(
   () => import('./HomePageContent'),
