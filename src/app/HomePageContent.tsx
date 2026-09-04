@@ -159,6 +159,7 @@ export default function HomePage() {
               <div>
                 <h1 className="text-lg sm:text-2xl font-bold tracking-tight">Product Search</h1>
                 <p className="hidden xs:block text-[10px] sm:text-xs text-gray-300">Product Catalog · Meadow Vale Foods</p>
+                <p className="text-xs text-gray-300 hidden sm:block">Product Catalog · Meadow Vale Foods</p>
               </div>
             </div>
             <div className="text-xs sm:text-sm text-gray-300">
