@@ -59,11 +59,25 @@ export function useProducts(): UseProductsResult {
 
       const data: ProductsResponse = await response.json();
       
-      setProducts(data.data);
-      setTotal(data.meta.total);
-      setTotalPages(data.meta.totalPages);
-      setCurrentPage(data.meta.page);
-      setFilterCounts(data.filters);
+      if (!data || !data.meta) {
+          console.error('Invalid response structure:', data);
+          setProducts([]);
+          setTotal(0);
+          setTotalPages(0);
+          setCurrentPage(1);
+          setFilterCounts(null);
+          setLoading(false);
+          return;
+        }
+        
+        setProducts(data.data || []);
+        setTotal(data.meta.total || 0);
+        setTotalPages(data.meta.totalPages || 0);
+        setCurrentPage(data.meta.page || 1);
+        setFilterCounts(data.filters || null);
+        
+        console.log('✅ Products loaded:', data.data?.length || 0);
+        
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch products');
       console.error('Error fetching products:', err);
