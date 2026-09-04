@@ -1,6 +1,11 @@
 // app/page.tsx
 'use client';
 
+// FORȚEAZĂ RANDAREA DINAMICĂ (previne prerendering-ul)
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '../hooks/useProducts';
@@ -75,7 +80,7 @@ export default function HomePage() {
     updateUrl();
   }, [updateUrl]);
 
- const handleFilterChange = (key: string, value: string[] | boolean) => {
+  const handleFilterChange = (key: string, value: string[] | boolean) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1);
     setTimeout(() => {
@@ -129,6 +134,23 @@ export default function HomePage() {
     filters.inStock || 
     filters.printed;
 
+  // ADĂUGĂ VERIFICĂRILE ASTEA PENTRU SIGURANȚĂ:
+  if (loading && products.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F2F2F2] flex items-center justify-center">
+        <div className="text-[#2D5A3F] text-lg">Loading products...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F2F2F2] flex items-center justify-center">
+        <div className="text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F2F2F2]">
       {/* Header */}
@@ -142,11 +164,10 @@ export default function HomePage() {
               <div>
                 <h1 className="text-lg sm:text-2xl font-bold tracking-tight">Product Search</h1>
                 <p className="hidden xs:block text-[10px] sm:text-xs text-gray-300">Product Catalog · Meadow Vale Foods</p>
-                <p className="text-xs text-gray-300 hidden sm:block">Product Catalog · Meadow Vale Foods</p>
               </div>
             </div>
             <div className="text-xs sm:text-sm text-gray-300">
-              {!loading && products.length > 0 && (
+              {!loading && products && products.length > 0 && (
                 <span className="bg-[#2D5A3F] px-2 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#FFC107]/30 text-xs sm:text-sm">
                   {total} products
                 </span>
@@ -193,7 +214,7 @@ export default function HomePage() {
           <div className="flex-1 min-w-0">
             <ProductList products={products} loading={loading} error={error} searchTerm={search} />
             
-            {!loading && !error && products.length > 0 && (
+            {!loading && !error && products && products.length > 0 && (
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -212,7 +233,7 @@ export default function HomePage() {
             {' '}— Demo for <span className="text-[#FFC107] font-medium">Meadow Vale Foods</span>
           </p>
           <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
-            Built by <span className="font-semibold">Dumitru Craciun</span> — Next.js · Node.js · Express · MySQL · Tailwind
+            Built by <span className="font-semibold">Dumitru Craciun</span> — Next.js · Node.js · Express · PostgreSQL · Tailwind
           </p>
         </div>
       </footer>
