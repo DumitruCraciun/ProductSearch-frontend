@@ -1,102 +1,220 @@
-import Image from "next/image";
+// app/page.tsx
+'use client';
 
-export default function Home() {
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useProducts } from '../hooks/useProducts';
+import { ProductList } from '../components/ProductList';
+import { FilterSidebar } from '../components/FilterSidebar';
+import { SearchBox } from '../components/SearchBox';
+import { Pagination } from '../components/Pagination';
+import { ResetButton } from '../components/ResetButton';
+
+export default function HomePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const initialSearch = searchParams.get('search') || '';
+  const initialPage = parseInt(searchParams.get('page') || '1');
+  const initialPackaging = searchParams.get('packaging')?.split(',') || [];
+  const initialBrand = searchParams.get('brand')?.split(',') || [];
+  const initialInStock = searchParams.get('inStock') === 'true';
+  const initialPrinted = searchParams.get('printed') === 'true';
+
+  const [search, setSearch] = useState(initialSearch);
+  const [filters, setFilters] = useState({
+    packaging: initialPackaging,
+    brand: initialBrand,
+    inStock: initialInStock,
+    printed: initialPrinted,
+  });
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [sort, setSort] = useState<'name_asc' | 'name_desc' | 'stock_desc'>('name_asc');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    products,
+    loading,
+    error,
+    total,
+    totalPages,
+    filterCounts,
+    fetchProducts,
+  } = useProducts();
+
+  const updateUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (filters.packaging.length > 0) {
+      params.set('packaging', filters.packaging.join(','));
+    }
+    if (filters.brand.length > 0) {
+      params.set('brand', filters.brand.join(','));
+    }
+    if (filters.inStock) params.set('inStock', 'true');
+    if (filters.printed) params.set('printed', 'true');
+    
+    const queryString = params.toString();
+    router.replace(`/?${queryString}`);
+  }, [search, currentPage, filters, router]);
+
+  useEffect(() => {
+    fetchProducts({
+      page: currentPage,
+      search,
+      packaging: filters.packaging,
+      brand: filters.brand,
+      inStock: filters.inStock,
+      printed: filters.printed,
+      sort,
+    });
+  }, [fetchProducts, currentPage, search, filters, sort]);
+
+  useEffect(() => {
+    updateUrl();
+  }, [updateUrl]);
+
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleReset = () => {
+    setSearch('');
+    setFilters({
+      packaging: [],
+      brand: [],
+      inStock: false,
+      printed: false,
+    });
+    setCurrentPage(1);
+    setSort('name_asc');
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleEscapeClear = () => {
+    setSearch('');
+    setFilters({
+      packaging: [],
+      brand: [],
+      inStock: false,
+      printed: false,
+    });
+    setCurrentPage(1);
+    setSort('name_asc');
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+  };
+
+  const hasFilters = search !== '' || 
+    filters.packaging.length > 0 || 
+    filters.brand.length > 0 || 
+    filters.inStock || 
+    filters.printed;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-[#F2F2F2]">
+      {/* Header */}
+      <header className="bg-[#2D5A3F] text-white py-3 sm:py-4 shadow-lg border-b-4 border-[#FFC107]">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#FFC107] rounded-lg flex items-center justify-center text-[#2D5A3F] font-bold text-base sm:text-xl">
+                P
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-2xl font-bold tracking-tight">Product Search</h1>
+                <p className="hidden xs:block text-[10px] sm:text-xs text-gray-300">Product Catalog · Meadow Vale Foods</p>
+                <p className="text-xs text-gray-300 hidden sm:block">Product Catalog · Meadow Vale Foods</p>
+              </div>
+            </div>
+            <div className="text-xs sm:text-sm text-gray-300">
+              {!loading && products.length > 0 && (
+                <span className="bg-[#2D5A3F] px-2 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#FFC107]/30 text-xs sm:text-sm">
+                  {total} products
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      {/* Main Content */}
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        {/* Search and Sort */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex-1">
+            <SearchBox 
+              ref={searchInputRef}  
+              value={search} 
+              onChange={handleSearchChange} 
+              onEscapeClear={handleEscapeClear}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as typeof sort)}
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 border border-[#E5E5E5] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#FFC107] text-sm"
+            >
+              <option value="name_asc">Name A-Z</option>
+              <option value="name_desc">Name Z-A</option>
+              <option value="stock_desc">In Stock First</option>
+            </select>
+            <ResetButton onReset={handleReset} hasFilters={hasFilters} />
+          </div>
+        </div>
+
+        {/* Filters and Products */}
+        <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+          <FilterSidebar
+            filters={filters}
+            filterCounts={filterCounts}
+            onFilterChange={handleFilterChange}
+          />
+          
+          <div className="flex-1 min-w-0">
+            <ProductList products={products} loading={loading} error={error} searchTerm={search} />
+            
+            {!loading && !error && products.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="bg-[#2D5A3F] text-white py-3 sm:py-4 mt-6 sm:mt-8 border-t-4 border-[#FFC107]">
+        <div className="container mx-auto px-3 sm:px-4 text-center text-xs sm:text-sm">
+          <p>
+            © {new Date().getFullYear()} <span className="text-[#FFC107] font-medium">Product Search</span>
+            {' '}— Demo for <span className="text-[#FFC107] font-medium">Meadow Vale Foods</span>
+          </p>
+          <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
+            Built by <span className="font-semibold">Dumitru Craciun</span> — Next.js · Node.js · Express · MySQL · Tailwind
+          </p>
+        </div>
       </footer>
     </div>
   );
