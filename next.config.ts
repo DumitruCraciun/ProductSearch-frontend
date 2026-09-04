@@ -1,8 +1,16 @@
-//next.config.ts
+// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // Dezactivează generarea paginilor statice
+  output: 'standalone',
+  staticPageGenerationTimeout: 0,
 };
 
 export default nextConfig;

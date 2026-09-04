@@ -1,16 +1,16 @@
-// next.config.ts
-import type { NextConfig } from "next";
+// D:\Software\ProductSearch\frontend\next.config.js
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Dezactivează generarea paginilor statice
+
   output: 'standalone',
   staticPageGenerationTimeout: 0,
 };
 
-export default nextConfig;
+module.exports = nextConfig;
