@@ -8,8 +8,18 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Elimină output: 'standalone' dacă nu e necesar
-  // Elimină generateStaticParams
+  // dezactivează generarea statică
+  output: 'standalone',
+  // Previne generarea paginilor statice
+  staticPageGenerationTimeout: 0,
+  // Forțează toate paginile să fie dinamice
+  generateStaticParams: async () => {
+    return [];
+  },
+  // Dezactivează optimizarea statică
+  experimental: {
+    optimizeCss: false,
+  },
 };
 
 module.exports = nextConfig;
