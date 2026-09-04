@@ -6,8 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "build:prod": "next build && next export"
+    "lint": "eslint"
   },
   "dependencies": {
     "next": "15.5.25",

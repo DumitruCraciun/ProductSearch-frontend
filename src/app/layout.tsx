@@ -2,9 +2,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
-//  FORȚEAZĂ GENERAREA DINAMICĂ PENTRU LAYOUT
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Product Search - Product Catalog',

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Product, ProductsResponse, ProductFilters } from '../types/product';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://productsearch-backend-dev.onrender.com/api';
+console.log('📡 API URL:', API_URL);
 
 interface UseProductsResult {
   products: Product[];
