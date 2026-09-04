@@ -4,7 +4,6 @@
 // FORȚEAZĂ RANDAREA DINAMICĂ (previne prerendering-ul)
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
-export const revalidate = 0;
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
